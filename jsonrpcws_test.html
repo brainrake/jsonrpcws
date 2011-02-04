@@ -1,0 +1,27 @@
+<html>
+<head>
+	<script src="jsonrpcws.js"></script>
+<script>
+
+
+var service = {
+    hello: function(id, name){
+        alert("Got hello from "+name)
+        if(id){ //if this is a request, return [result, error]
+            return ['hi, '+name]
+        }
+    },
+    _onopen: function(ws){
+        service._request(1,"hello",["Alice"])
+    }
+}
+
+jsonrpcws("ws://localhost:8888/",service)
+
+
+
+</script>
+</head>
+<body>
+</body>
+</html>
