@@ -4,8 +4,10 @@ JSON-RPC over WebSocket
 
 
 This is an implementation of
-`JSON-RPC 1.0<http://json-rpc.org/wiki/specification>`_
-over `WebSockets<http://dev.w3.org/html5/websockets/>`_.
+`JSON-RPC 1.0
+<http://json-rpc.org/wiki/specification>`_
+over `WebSockets
+<http://dev.w3.org/html5/websockets/>`_.
 
 The server is implemented in Python, with the Eventlet
 networking library.
