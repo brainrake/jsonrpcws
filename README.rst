@@ -1,6 +1,6 @@
 
-JSON-RPC over WebSocket
-=======================
+JSON-RPC over WebSockets
+========================
 
 
 This is an implementation of
