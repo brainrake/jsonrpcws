@@ -71,13 +71,3 @@ function jsonrpcws(url, service){
     }
 }
 
-
-$(function(){
-    try {
-    }
-    catch (err) {
-        console.log(err);
-    }
-})
-
-
