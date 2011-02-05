@@ -9,7 +9,7 @@
 #
 # import eventlet
 # @eventlet.websocket.WebSocketWSGI
-# class MyService(jsonrpcws.JsonRpcWebsocket):
+# class MyService(jsonrpcws.JsonRpcWebSocket):
 #     def hello(name):
 #         print "got hello from", name
 #         if self._id: # if this is a request, return a (response, error) tuple
@@ -17,6 +17,8 @@
 
 
 #TODO: error handling
+#TODO: doc
+#TODO: licence
 
 from eventlet import websocket
 import simplejson
@@ -63,7 +65,7 @@ class JsonRpcWebSocket(object):
 
     def _request(self, method, params, id=None, callback=None):
         '''Send JSON-RPC request. Callback will run when response arrives.'''
-        if not id: #TODO:fix this
+        if id == None: #TODO:fix this
             id = self.__counter
             self.__counter += 1
         message = simplejson.dumps({'id':id, 'method':method, 'params':params})
@@ -94,6 +96,7 @@ class JsonRpcWebSocket(object):
         return
 
     def _onerror(e):
+        #TODO: make this better
         '''Error handler.'''
         print "JSON-RPC error: ",e
         return

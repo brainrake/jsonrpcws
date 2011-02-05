@@ -22,8 +22,11 @@ jsonrpcws("ws://localhost:8888/",service)
 
 */
 
-
+//TODO: fix inconsistencies with py
 //TODO: convert to class
+//TODO: doc
+//TODO: licence
+
 function jsonrpcws(url, service){
     if(!window.console){window.console={log:function(){}}}
     if(!window.WebSocket){throw "jsonrpcws error: WebSockets not available"}
