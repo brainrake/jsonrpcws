@@ -38,9 +38,10 @@ To create a service, subclass ``JSONRPCWebSocket`` and decorate it with
 Any methods defined on the subclass, whose names don't start
 with an underscore (_) will be callable methods in the service.
 
-The id of the current request is available through ``self._id`` .
+You can override the event handlers ``_oninit()`` and ``_onclose()`` for
+additional functionality.
 
-You can override the event handlers ``_oninit()`` and ``_onclose()`` .
+The id of the current request is available through ``self._id`` .
 
 The Eventlet WebSocket object is available through ``self._ws`` .
 
@@ -55,7 +56,8 @@ Example: ::
         def _oninit():
             print self._ws.environ
 
-To run it ::
+To run it, pass the class (not an instance) to ``eventlet.wsgi.server``.
+A new instance will be created for every incoming WebSocket connection. ::
 
     eventlet.wsgi.server(eventlet.listen(('', 8888)), MyService)
 
