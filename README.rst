@@ -28,6 +28,10 @@ I will use it in production soon, so expect improvements.
 Usage
 -----
 
+The server needs the ``Eventlet`` python networking library.
+to install it on debian-based systems, do
+``sudo apt-get install python-eventlet``.
+
 
 Server
 ~~~~~~
@@ -55,11 +59,11 @@ Example: ::
 
     @eventlet.websocket.WebSocketWSGI
     class MyService(jsonrpcws.JsonRpcWebSocket):
-        def hello(name):
+        def hello(self, name):
             print "got hello from", name
             if self._id: # if this is a request, not a notification
                 return ( ["hi, "+name], None) # return a (response, error) tuple
-        def _oninit():
+        def _oninit(self):
             print self._ws.environ
             self._nofify("hello",["me"])
 

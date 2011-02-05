@@ -10,7 +10,7 @@
 # import eventlet
 # @eventlet.websocket.WebSocketWSGI
 # class MyService(jsonrpcws.JsonRpcWebSocket):
-#     def hello(name):
+#     def hello(self, name):
 #         print "got hello from", name
 #         if self._id: # if this is a request, return a (response, error) tuple
 #             return ( ["hi, "+name], None)
