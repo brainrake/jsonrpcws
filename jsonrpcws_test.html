@@ -1,27 +1,55 @@
 <html>
 <head>
-	<script src="jsonrpcws.js"></script>
+    <script src="http://code.jquery.com/jquery-1.5.min.js"></script>
+    <script src="jsonrpcws.js"></script>
 <script>
 
 
-var service = {
-    hello: function(id, name){
-        alert("Got hello from "+name)
-        if(id){ //if this is a request, return [result, error]
-            return ['hi, '+name]
-        }
+window.service = {
+    message: function(user, message){
+        $("#messages").append("<div><strong>"+user+":</strong> "+message+"</div>")
     },
-    _onopen: function(ws){
-        service._request(1,"hello",["Alice"])
+    joinpart: function(){
+        this._request("clients",[],clients)
+    },
+    _onopen: function(){
+        this._notify("set_username",[$("#username").val()])
+        this._request("clients",[],clients)
     }
 }
 
-jsonrpcws("ws://localhost:8888/",service)
+function clients(result, error){
+    $("#clients").html("")
+    for(var i=0;i<result.length;i++){
+        $("#clients").append("<strong>"+result[i]+"</strong><br/>")
+    }
+}
 
 
+function say(){
+    service._notify("say",[$("#message").val()])
+    $("#message").val("")
+}
+
+function go(){
+    if(service["_close"]){ service._close() }
+    jsonrpcws("ws://localhost:8888/",service)
+}
 
 </script>
 </head>
 <body>
+    <h2>multi-user chat demo with JSON-RPC over WebSockets</h2>
+    <p>Set your username to connect, then say something.<p>
+    <p>Try opening the page in another window and connecting from there, too.<p>
+    <p></p><br/>
+<div class="demo">
+    <div>connected clients:</div>
+    <div id="clients"></div>
+    <br/>
+    <input id="username" value="anon"/><button onclick="go()">set username</button>
+    <div id="messages" style="height:200px;border:1px solid #aaa;"></div>
+    <input id="message"><button onclick="say()">say</button>
+</div>
 </body>
 </html>
