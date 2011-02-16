@@ -39,33 +39,36 @@ Server
 To create a service, subclass ``JSONRPCWebSocket`` and decorate it with 
 ``@eventlet.websocket.WebSocketWSGI``.
 
-Any methods defined on the subclass, whose names don't start
-with an underscore (_) will be callable methods in the service.
+Any methods defined in the inner class `local` can be called remotely.
+They receive the service instance as the first argument.
 
-You can override the event handlers ``_oninit()`` and ``_onclose()`` for
+You can override the event handlers ``oninit()`` and ``onclose()`` for
 additional functionality.
 
-The id of the current request is available through ``self._id`` .
+The id of the current request is available through ``service._id`` .
 If this value is not ``None``, the method has to return a
 ``(result, error)`` tuple.
 
-The Eventlet WebSocket object is available through ``self._ws`` .
+The Eventlet WebSocket object is available through ``service.ws`` .
 
-To send messages, use ``_notify(method, params)`` and 
-``_request(method, params, id=<automatic>, callback=None)``.
+To send messages, use ``notify(self, method, params)`` and 
+``request(self, method, params, callback=None)``.
 The callback gets two arguments: ``result`` and ``error``.
+
+You can also ``close()`` the socket.
 
 Example: ::
 
     @eventlet.websocket.WebSocketWSGI
-    class MyService(jsonrpcws.JsonRpcWebSocket):
-        def hello(self, name):
-            print "got hello from", name
-            if self._id: # if this is a request, not a notification
-                return ( ["hi, "+name], None) # return a (response, error) tuple
-        def _oninit(self):
-            print self._ws.environ
-            self._nofify("hello",["me"])
+    class MyService(jsonrpcws.JSONRPCWSService):
+        class local: # the methods in this class can be called remotely
+            def hello(service, name):
+                print "got hello from", name
+                if self._id: # if this is a request, not a notification
+                    return ( ["hi, "+name], None) # return a (response, error) tuple
+        def oninit(self):
+            print self.ws.environ
+            self.nofify("hi",["the server"])
 
 To run it, pass the class (not an instance) to ``eventlet.wsgi.server``.
 A new instance will be created for every incoming WebSocket connection. ::
@@ -76,4 +79,28 @@ A new instance will be created for every incoming WebSocket connection. ::
 Client
 ~~~~~~
 
-This section is under development.
+To create a service, instantiate JSONRPCWSService. The client API is
+almost identical to the server. Methods defined in the ``local``
+object will be remotely callable. The service instance is available
+through ``this``.
+
+``notify``, ``request``, ``respond`, ``close``, ``oninit`` and
+``onclose`` are similarly available.
+
+The WebSocket instance is available through ``this.ws`` .
+
+
+Example: ::
+
+    var service_def = {
+        local:{
+            hi: function(who){
+                alert("got hi from "+who)
+            }
+        },
+        onopen: function(){
+            this.notify("hello", ["the client"])
+        }
+    }
+    var service = new JSONRPCWSService("ws://localhost:8888/",service_def)
+

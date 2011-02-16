@@ -1,20 +1,15 @@
 /*
 jsonrpcws.js
-JSON-RPC over Websocket client implementation
+JSON-RPC over WebSocket client implementation
 @author: Martin Boros <brainrape@chaosmedia.hu>
-
-usage:
-
-//TODO
 
 */
 
 //TODO: fix inconsistencies with py
-//TODO: convert to class
 //TODO: doc
 //TODO: licence
 
-function JSONRPCWSService(url, service_def) {
+function JSONRPCWSService(uri, service_def) {
     if(!window.console){window.console={log:function(){}}}
     if(!window.WebSocket){throw "jsonrpcws error: WebSockets not available"}
     if(!window.JSON){throw "jsonrpcws error: JSON (de)serializer not available"}
@@ -32,19 +27,20 @@ function JSONRPCWSService(url, service_def) {
     this._id = null
     this._next_id = 1
     this._callbacks = []
+    this.uri = uri
 
     // Set up WebSocket and event handlers
-    this.ws = new WebSocket(url);
+    this.ws = new WebSocket(uri);
 
     this.ws.onopen = function(){
-        console.log("Websocket at "+url+" connection open.")
+        console.log("WebSocket to "+uri+" - connection open.")
         if(that['onopen']){ that.onopen.apply(service) }
     }
 
     this.ws.onmessage = function(evt) {
         //TODO: error checking
         data = JSON.parse(evt.data);
-        console.log("Websocket at "+url+" got data: ", evt.data);
+        console.log("WebSocket to "+uri+" - got data: ", evt.data);
         if (data['method']){
             service_method = that.local[data['method']]
             that._id = data['id']
@@ -62,18 +58,18 @@ function JSONRPCWSService(url, service_def) {
                 }
             }
         } else {
-            console.log("Websocket at "+url+" JSONRPC error.");
+            console.log("WebSocket to "+uri+" - JSONRPC error.");
             that.close()
         }
     };
 
     this.ws.onerror = function(){
-        console.log("Websocket at "+url+" error.");
+        console.log("WebSocket to "+uri+" - error.");
         if(that['onclose']){ that.onclose.apply(that, error) }
     }
 
     this.ws.onclose = function(){
-        console.log("Websocket at "+url+" connection closed.")
+        console.log("WebSocket to "+uri+" - connection closed.")
         if(that['onclose']){ that.onclose.apply(that, undefined) }
     }
 }
@@ -96,7 +92,7 @@ JSONRPCWSService.prototype = {
 
         //send message
         message = JSON.stringify({id:id, method:method, params:params})
-        console.log("Websocket sending data: "+message)
+        console.log("WebSocket to "+this.uri+" - sending data: "+message)
         this.ws.send(message)
     },
     notify: function(method, params){
@@ -106,7 +102,7 @@ JSONRPCWSService.prototype = {
     respond: function(id, result, error){
         /// Send a response
         message = JSON.stringify({id:id, result:result, error:error})
-        console.log("Websocket sending data: "+message)
+        console.log("WebSocket to "+this.uri+" - sending data: "+message)
         this.ws.send(message)
     },
     close: function(){

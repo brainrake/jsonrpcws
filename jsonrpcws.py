@@ -2,19 +2,9 @@
 #
 # jsonrpcws.py
 # 
-# JSON-RPC 1.0 over Websocket server implementation
+# JSON-RPC 1.0 over WebSocket server implementation
 # @author: Martin Boros <brainrape@chaosmedia.hu>
 #
-# usage:
-#
-# import eventlet
-# @eventlet.websocket.WebSocketWSGI
-# class MyService(jsonrpcws.JsonRpcWebSocket):
-#     def hello(self, name):
-#         print "got hello from", name
-#         if self._id: # if this is a request, return a (response, error) tuple
-#             return ( ["hi, "+name], None)
-
 
 #TODO: error handling
 #TODO: doc
@@ -84,6 +74,10 @@ class JSONRPCWSService(object):
         '''Send JSON-RPC response'''
         message = simplejson.dumps({'id':id, 'result':result, 'error':error})
         self.ws.send(message)
+        
+    def close(self):
+        '''Close the WebSocket.'''
+        self.ws.close()
         
     def onopen():
         '''Socket open event handler.'''
