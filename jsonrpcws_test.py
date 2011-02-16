@@ -3,28 +3,31 @@ import jsonrpcws
 import eventlet
 
 @eventlet.websocket.WebSocketWSGI
-class MyService(jsonrpcws.JsonRpcWebSocket):
-    _clients = set()
-    
-    def clients(self):
-        return ( [c._username for c in self._clients], None)
-        
-    def say(self, message):
-        for c in self._clients:
-            c._notify("message", [self._username, message])
-            
-    def set_username(self, username):
-        self._username = username
-        for c in self._clients:
-            c._notify("joinpart",[])
-            
-    def _onopen(self):
-        self._clients.add(self)
-        self._username=""
+class MyService(jsonrpcws.JSONRPCWSService):
+    clients = set()
 
-    def _onclose(self):
-        self._clients.remove(self)
-        for c in self._clients:
-            c._notify("joinpart",[])
+    def onopen(self):
+        self.clients.add(self)
+        self.username=""
+    
+    def onclose(self, error):
+        self.clients.remove(self)
+        for c in self.clients:
+            c.notify("joinpart",[])
+
+    class local:
+        def clients(service):
+            return ( [c.username for c in service.clients], None)
+            
+        def say(service, message):
+            for c in service.clients:
+                #c.remote.message(service.username, message)
+                c.notify("message", [service.username, message])
+                
+        def set_username(service, username):
+            service.username = username
+            for c in service.clients:
+                c.notify('joinpart',[])
+                
 
 eventlet.wsgi.server(eventlet.listen(('', 8888)), MyService)

@@ -5,20 +5,7 @@ JSON-RPC over Websocket client implementation
 
 usage:
 
-var service = {
-    hello: function(id, name){
-        alert("Got hello from "+name)
-        if(id){ //if this is a request, return [result, error]
-            return ['hi, '+name]
-        }
-    }
-    _onopen: function(){
-        this.hello("Alice")
-        this._request(1,"hello",["Alice"])
-    }
-}
-
-jsonrpcws("ws://localhost:8888/",service)
+//TODO
 
 */
 
@@ -27,87 +14,107 @@ jsonrpcws("ws://localhost:8888/",service)
 //TODO: doc
 //TODO: licence
 
-function jsonrpcws(url, service){
+function JSONRPCWSService(url, service_def) {
     if(!window.console){window.console={log:function(){}}}
     if(!window.WebSocket){throw "jsonrpcws error: WebSockets not available"}
     if(!window.JSON){throw "jsonrpcws error: JSON (de)serializer not available"}
 
-    CALLBACK_QUEUE_SIZE = 32
-    service._id = null
-    service.__counter = 1
-    service.__callbacks = []
+    //make `this` available in closures
+    var that = this
     
-    service._request = function(method, params, callback, id){
-        /// Send a request
-        if(id===undefined){ id = service.__counter; service.__counter += 1; }
-        message = JSON.stringify({id:id, method:method, params:params})
-        console.log("Websocket at "+url+" sending message: "+message)
-        service.ws.send(message)
-        if(callback){
-            service.__callbacks = [[id, callback]].concat(service.__callbacks)
-        }
-        if(service.__callbacks.length > CALLBACK_QUEUE_SIZE){
-            service.__callbacks.pop()
-        }
-    }
-
-    service._notify = function(method, params){
-        /// Send a notification
-        this._request (method, params, null, null)
-    }
-
-    service._response = function(id, result, error){
-        /// Send a response
-        message = JSON.stringify({id:id, result:result, error:error})
-        console.log("Websocket at "+url+" sending message: "+message)
-        service.ws.send(message)
-    }
-
-    service._close = function(){
-        /// Close the connection
-        service.ws.close()
-    }
+    //apply the service definition
+    this.local = service_def['local']
+    this.onopen = service_def['onopen']
+    this.onclose = service_def['onclose']
     
+    //set up instance variables
+    this._CALLBACK_QUEUE_SIZE = 32
+    this._id = null
+    this._next_id = 1
+    this._callbacks = []
+
     // Set up WebSocket and event handlers
-    service.ws = new WebSocket(url);
+    this.ws = new WebSocket(url);
 
-    service.ws.onopen = function(){
+    this.ws.onopen = function(){
         console.log("Websocket at "+url+" connection open.")
-        if(service['_onopen']){ service._onopen.apply(service) }
+        if(that['onopen']){ that.onopen.apply(service) }
     }
 
-    service.ws.onmessage = function(evt) {
+    this.ws.onmessage = function(evt) {
         //TODO: error checking
         data = JSON.parse(evt.data);
         console.log("Websocket at "+url+" got data: ", evt.data);
         if (data['method']){
-            service_method = service[data['method']]
-            service._id = data['id']
-            ret = service_method.apply(service, data['params'])
+            service_method = that.local[data['method']]
+            that._id = data['id']
+            ret = service_method.apply(that, data['params'])
             service._id = null
             if(data['id']){
-                service._response(data['id'], ret[0], ret[1])
+                that.respond(data['id'], ret[0], ret[1])
             }
         } else if (data['result']){
-            for(var i=0;i<service.__callbacks.length;i++){
-                if(service.__callbacks[i][0] == data['id']){
-                    service.__callbacks[i][1].apply(service, [data['result'], data['error']])
-                    service.__callbacks.splice(i,1)
+            for(var i=0; i<that._callbacks.length; i++){
+                if(that._callbacks[i][0] == data['id']){
+                    var callback = that._callbacks.splice(i,1)[0][1]
+                    callback.apply(that, [data['result'], data['error']])
                     break;
                 }
             }
         } else {
-            console.log("Websocket at "+url+" error.");
+            console.log("Websocket at "+url+" JSONRPC error.");
+            that.close()
         }
     };
 
-    service.ws.onerror = function(){
+    this.ws.onerror = function(){
         console.log("Websocket at "+url+" error.");
+        if(that['onclose']){ that.onclose.apply(that, error) }
     }
 
-    service.ws.onclose = function(){
+    this.ws.onclose = function(){
         console.log("Websocket at "+url+" connection closed.")
-        if(service['_onclose']){ service._onclose.apply(service) }
+        if(that['onclose']){ that.onclose.apply(that, undefined) }
     }
 }
+
+
+JSONRPCWSService.prototype = {
+    request: function(method, params, callback){
+        /// Send a request
+        //set id
+        var id = null
+        if(callback){ id = this._next_id; this._next_id += 1; }
+        
+        //save callback
+        if(this._callbacks.length > this._CALLBACK_QUEUE_SIZE){
+            this._callbacks.pop()
+        }
+        if(callback){
+            this._callbacks = [[id, callback]].concat(this._callbacks)
+        }
+
+        //send message
+        message = JSON.stringify({id:id, method:method, params:params})
+        console.log("Websocket sending data: "+message)
+        this.ws.send(message)
+    },
+    notify: function(method, params){
+        /// Send a notification
+        this.request (method, params, undefined)
+    },
+    respond: function(id, result, error){
+        /// Send a response
+        message = JSON.stringify({id:id, result:result, error:error})
+        console.log("Websocket sending data: "+message)
+        this.ws.send(message)
+    },
+    close: function(){
+        /// Close the connection
+        this.ws.close()
+    }
+}
+
+
+    
 

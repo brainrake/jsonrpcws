@@ -5,35 +5,35 @@
 <script>
 
 
-window.service = {
-    message: function(user, message){
-        $("#messages").append("<div><strong>"+user+":</strong> "+message+"</div>")
-    },
-    joinpart: function(){
-        this._request("clients",[],clients)
-    },
-    _onopen: function(){
-        this._notify("set_username",[$("#username").val()])
-        this._request("clients",[],clients)
+function go(){
+    if(window['service']){ window.service.close() }
+    var service_def = {
+        local:{
+            message: function(user, message){
+                $("#messages").append("<div><strong>"+user+":</strong> "+message+"</div>")
+            },
+            joinpart: function(){
+                this.request("clients",[],clients_callback)
+            }
+        },
+        onopen: function(){
+            this.notify('set_username',[$("#username").val()])
+            this.request('clients',[],clients_callback)
+        }
     }
+    window.service = new JSONRPCWSService("ws://localhost:8888/",service_def)
 }
 
-function clients(result, error){
+function clients_callback(result, error){
     $("#clients").html("")
     for(var i=0;i<result.length;i++){
         $("#clients").append("<strong>"+result[i]+"</strong><br/>")
     }
 }
 
-
 function say(){
-    service._notify("say",[$("#message").val()])
+    service.notify("say",[$("#message").val()])
     $("#message").val("")
-}
-
-function go(){
-    if(service["_close"]){ service._close() }
-    jsonrpcws("ws://localhost:8888/",service)
 }
 
 </script>
