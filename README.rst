@@ -54,6 +54,7 @@ The Eventlet WebSocket object is available through ``service.ws`` .
 To send messages, use ``notify(self, method, params)`` and 
 ``request(self, method, params, callback=None)``.
 The callback gets two arguments: ``result`` and ``error``.
+To explicitly send a response, use ``respond(self, id, result, error)``.
 
 You can also ``close()`` the socket.
 
@@ -84,7 +85,7 @@ almost identical to the server. Methods defined in the ``local``
 object will be remotely callable. The service instance is available
 through ``this``.
 
-``notify``, ``request``, ``respond`, ``close``, ``oninit`` and
+``notify``, ``request``, ``respond``, ``close``, ``oninit`` and
 ``onclose`` are similarly available.
 
 The WebSocket instance is available through ``this.ws`` .
