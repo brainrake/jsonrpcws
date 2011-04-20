@@ -21,7 +21,7 @@ function go(){
             this.request('clients',[],clients_callback)
         }
     }
-    window.service = new JSONRPCWSService("ws://localhost:8888/",service_def)
+    window.service = new JsonRpcWsService("ws://localhost:8888/",service_def)
 }
 
 function clients_callback(result, error){

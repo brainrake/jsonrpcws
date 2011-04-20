@@ -17,7 +17,7 @@ import simplejson
 class JsonRpcError(Exception):
     pass
 
-class JSONRPCWSService(object):
+class JsonRpcWsService(object):
     _CALLBACK_QUEUE_SIZE = 32
     
     def __init__(self, ws):

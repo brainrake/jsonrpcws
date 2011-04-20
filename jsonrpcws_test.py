@@ -3,7 +3,7 @@ import jsonrpcws
 import eventlet
 
 @eventlet.websocket.WebSocketWSGI
-class MyService(jsonrpcws.JSONRPCWSService):
+class MyService(jsonrpcws.JsonRpcWsService):
     clients = set()
 
     def onopen(self):

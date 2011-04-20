@@ -22,7 +22,6 @@ Project Status
 
 The project is in **alpha** state.
 It is functionally complete, but is yet to be tested extensively.
-I will use it in production soon, so expect improvements.
 
 
 Usage
@@ -36,7 +35,7 @@ to install it on debian-based systems, do
 Server
 ~~~~~~
 
-To create a service, subclass ``JSONRPCWebSocket`` and decorate it with 
+To create a service, subclass ``JsonRpcWsService`` and decorate it with 
 ``@eventlet.websocket.WebSocketWSGI``.
 
 Any methods defined in the inner class `local` can be called remotely.
@@ -61,7 +60,7 @@ You can also ``close()`` the socket.
 Example: ::
 
     @eventlet.websocket.WebSocketWSGI
-    class MyService(jsonrpcws.JSONRPCWSService):
+    class MyService(jsonrpcws.JsonRpcWsService):
         class local: # the methods in this class can be called remotely
             def hello(service, name):
                 print "got hello from", name
@@ -80,7 +79,7 @@ A new instance will be created for every incoming WebSocket connection. ::
 Client
 ~~~~~~
 
-To create a service, instantiate JSONRPCWSService. The client API is
+To create a service, instantiate JsonRpcWsService. The client API is
 almost identical to the server. Methods defined in the ``local``
 object will be remotely callable. The service instance is available
 through ``this``.
@@ -103,5 +102,5 @@ Example: ::
             this.notify("hello", ["the client"])
         }
     }
-    var service = new JSONRPCWSService("ws://localhost:8888/",service_def)
+    var service = new JsonRpcWsService("ws://localhost:8888/",service_def)
 

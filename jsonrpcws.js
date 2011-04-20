@@ -9,7 +9,7 @@ JSON-RPC over WebSocket client implementation
 //TODO: doc
 //TODO: licence
 
-function JSONRPCWSService(uri, service_def) {
+function JsonRpcWsService(uri, service_def) {
     if(!window.console){window.console={log:function(){}}}
     if(!window.WebSocket){throw "jsonrpcws error: WebSockets not available"}
     if(!window.JSON){throw "jsonrpcws error: JSON (de)serializer not available"}
@@ -75,7 +75,7 @@ function JSONRPCWSService(uri, service_def) {
 }
 
 
-JSONRPCWSService.prototype = {
+JsonRpcWsService.prototype = {
     request: function(method, params, callback){
         /// Send a request
         //set id
